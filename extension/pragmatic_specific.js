@@ -4,21 +4,20 @@
 (function() {
     'use strict';
     
-    let melBetBalance = 500.00; // Default, will be updated from HUD/messages
+    let melBetBalance = 500.00; // Default, will be updated from API/messages
     
     // Identify which frame we're in
     const frameInfo = window === window.top ? 'TOP FRAME' : 'IFRAME: ' + window.location.href.substring(0, 50);
     console.log('[Pragmatic Canvas] EARLY INIT in', frameInfo);
     
-    // Try to get balance from HUD (top frame only)
-    function updateBalanceFromHUD() {
-        const hudBalance = document.querySelector('.hud-balance');
-        if (hudBalance) {
-            const text = hudBalance.textContent.replace('FUN ', '').trim();
-            const parsed = parseFloat(text.replace(/,/g, ''));
-            if (!isNaN(parsed) && parsed > 0) {
-                melBetBalance = parsed;
-                console.log('[Pragmatic Canvas] Got balance from HUD:', melBetBalance);
+    // Fetch balance from wallet API (top frame only)
+    async function fetchBalanceFromAPI() {
+        try {
+            const res = await fetch('/api/wallet/balance');
+            const data = await res.json();
+            if (data.balance !== undefined) {
+                melBetBalance = data.balance;
+                console.log('[Pragmatic Canvas] Got balance from API:', melBetBalance);
                 // Broadcast to iframes
                 document.querySelectorAll('iframe').forEach(iframe => {
                     try {
@@ -26,13 +25,15 @@
                     } catch(e) {}
                 });
             }
+        } catch(e) {
+            console.log('[Pragmatic Canvas] Failed to fetch balance from API');
         }
     }
     
-    // Poll for HUD balance in top frame
+    // Poll for balance updates in top frame
     if (window === window.top) {
-        setInterval(updateBalanceFromHUD, 500);
-        setTimeout(updateBalanceFromHUD, 100);
+        setInterval(fetchBalanceFromAPI, 1000);
+        setTimeout(fetchBalanceFromAPI, 100);
     }
     
     // IMMEDIATELY intercept canvas - before any game code runs

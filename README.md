@@ -5,9 +5,9 @@ A standalone launcher for Sweet Bonanza 1000 (Game ID: 95426) with virtual walle
 ## Features
 
 - 🎰 Launches Sweet Bonanza 1000 demo game
-- 💰 Custom virtual wallet balance
-- 🔄 Real-time balance sync with game
-- 🎯 Canvas interception to display custom balance in-game
+- 💰 Custom virtual wallet balance displayed directly in-game
+- 🔄 Real-time balance sync - wins/losses update the CREDIT display
+- 🎯 Canvas interception replaces the game's balance with your custom balance
 
 ## Installation
 
@@ -40,11 +40,12 @@ python launcher.py --balance 777.77 --port 8080
 
 ## How It Works
 
-1. The launcher starts a local HTTP server
+1. The launcher starts a local HTTP server with a virtual wallet
 2. Fetches the demo game URL from MelBet API
 3. Launches Chromium with the balance interception extension
 4. The extension intercepts canvas rendering to display your custom balance
-5. Win/loss deltas are tracked and synced to your virtual wallet
+5. Win/loss deltas are tracked and synced to your virtual wallet in real-time
+6. The in-game CREDIT display updates automatically as you play
 
 ## Files
 
@@ -58,4 +59,6 @@ python launcher.py --balance 777.77 --port 8080
 
 The extension uses Manifest V3 with `world: "MAIN"` to inject directly into the page's JavaScript context. This allows intercepting `CanvasRenderingContext2D.prototype.fillText` before the game renders any text, enabling real-time balance replacement.
 
-Only values > $5000 are replaced to preserve game UI elements (bet amounts, buy prices, etc.).
+The extension polls the wallet API every second to get the current balance and broadcasts updates to the game iframe via postMessage.
+
+Only values > $5000 are replaced to preserve game UI elements (bet amounts, buy prices, win displays, etc.).

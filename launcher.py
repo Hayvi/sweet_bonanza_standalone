@@ -188,13 +188,6 @@ def create_server(host: str, port: int, initial_balance: float):
         body {{ margin: 0; font-family: system-ui, sans-serif; }}
         header {{ display: flex; gap: 12px; align-items: center; padding: 10px 12px; background: #111; color: #fff; }}
         iframe {{ width: 100vw; height: calc(100vh - 44px); border: 0; }}
-        .hud {{
-            position: absolute; top: 44px; right: 12px;
-            background: rgba(0,0,0,0.8); color: #fff;
-            padding: 8px 16px; border-radius: 6px;
-            font-size: 14px; z-index: 100;
-        }}
-        .hud-balance {{ font-size: 18px; font-weight: bold; color: #4ade80; font-family: monospace; }}
     </style>
 </head>
 <body>
@@ -202,41 +195,19 @@ def create_server(host: str, port: int, initial_balance: float):
         <strong>{GAME_NAME}</strong>
         <span style="opacity:.7">Game ID: {GAME_ID}</span>
     </header>
-    <div class="hud">
-        <span>FUN </span><span class="hud-balance">Loading...</span>
-    </div>
     <iframe src="{demo_url}" allowfullscreen></iframe>
     <script>
-        let walletBalance = 0;
+        let walletBalance = {wallet.balance};
         let lastGameBalance = null;
-        const hudBalance = document.querySelector('.hud-balance');
-
-        async function fetchWallet() {{
-            try {{
-                const res = await fetch('/api/wallet/balance');
-                const data = await res.json();
-                walletBalance = data.balance;
-                updateHud();
-            }} catch (e) {{ console.error("Failed to fetch wallet", e); }}
-        }}
 
         async function syncWallet(newBalance) {{
             try {{
-                const res = await fetch('/api/wallet/sync', {{
+                await fetch('/api/wallet/sync', {{
                     method: 'POST',
                     headers: {{ 'Content-Type': 'application/json' }},
                     body: JSON.stringify({{ balance: newBalance }})
                 }});
-                const data = await res.json();
-                if (data.success) {{
-                    walletBalance = data.balance;
-                    updateHud();
-                }}
             }} catch (e) {{ console.error("Failed to sync wallet", e); }}
-        }}
-
-        function updateHud() {{
-            hudBalance.textContent = walletBalance.toFixed(2);
         }}
 
         window.addEventListener('message', (e) => {{
@@ -262,8 +233,6 @@ def create_server(host: str, port: int, initial_balance: float):
                 }}
             }}
         }});
-
-        fetchWallet();
     </script>
 </body>
 </html>"""
